@@ -8,7 +8,9 @@ We have collected more than a hundred reporitories containing mostly Python code
 
 [Repositories Collection](RepositoriesCollection/)  
 
-[Metrics Collection](MetricsCollection/)
+[Metrics Collection](MetricsCollection/)  
+
+[Metrics Values](data/)  
 
 ## Analysis
 
