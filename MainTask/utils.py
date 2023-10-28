@@ -3,12 +3,12 @@ import torch
 def sammon_error_optimized(x, d_y, smooth=1e-6):
     '''
     :param x:       Input data -> Tensor[batch (optional), #n classes/functions, #l<k features]
-    :param d_y:     Original data distance -> Tensor[#n classes/functions, #n classes/functions]
+    :param d_y:     Original data distance must be lower-triangular using torch.tril() -> Tensor[#n classes/functions, #n classes/functions]
     :param device:  Device cpu or cuda
     :param smooth:  Smooth to avoid div by 0
     '''
     
-    d_x = torch.cdist(x, x)
+    d_x = torch.tril(torch.cdist(x, x))
     #d_y = torch.cdist(y, y)
     
     return 1 / torch.sum(d_x, dim=(-2,-1)) * torch.sum(torch.square(d_x - d_y) / (d_x + smooth), dim=(-2,-1))

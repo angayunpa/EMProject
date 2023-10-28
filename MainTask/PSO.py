@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=2, device='cpu'):
+def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=2, device='cpu', use_tqdm=True):
     '''
     Particle swarm optimization
     
@@ -15,6 +15,7 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
     :param c1:           Cognitive weight
     :param c2:           Social weight
     :param device:       Device to compute (cpu or cuda)
+    :param use_tqdm:     Flag to show progress bar
     :return:             Index of best features
     '''
     
@@ -37,10 +38,14 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
     gbest_val = torch.tensor(float('inf'), dtype=torch.float, device=device)
     gbest_pos = torch.zeros(size=(1, dim), dtype=torch.float, device=device)
     
-    d_x = torch.cdist(x, x)
+    d_x = torch.tril(torch.cdist(x, x))
     #x_stacked = x.clone().unsqueeze(0).repeat(n_particles, 1, 1)
     
-    for _ in tqdm(range(max_iter)):
+    iterator = range(max_iter)
+    if use_tqdm:
+        iterator = tqdm(iterator)
+    
+    for _ in iterator:
         # Calculate error
         best_features_idx = torch.topk(particles, n_features, dim=1)[1]
         #x_stacked_indexed = batched_index_select(x_stacked, 2, best_features_idx)
