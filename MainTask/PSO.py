@@ -38,7 +38,11 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
     gbest_val = torch.tensor(float('inf'), dtype=torch.float, device=device)
     gbest_pos = torch.zeros(size=(1, dim), dtype=torch.float, device=device)
     
-    d_x = torch.tril(torch.cdist(x, x))
+    tril_index = torch.tril_indices(x.shape[0], x.shape[0], offset=-1, device=device)
+    tril_index = tril_index[0] * x.shape[0] + tril_index[1]
+    
+    d_y = torch.cdist(x, x)
+    d_y = d_y.view(-1)[tril_index]
     #x_stacked = x.clone().unsqueeze(0).repeat(n_particles, 1, 1)
     
     iterator = range(max_iter)
@@ -51,7 +55,10 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
         #x_stacked_indexed = batched_index_select(x_stacked, 2, best_features_idx)
         error = float('inf') * torch.ones(size=(n_particles, 1), dtype=torch.float, device=device)
         for idx in range(n_particles):
-            error[idx, 0] = optim_func(x[:, best_features_idx[idx]], d_x)
+            d_x = torch.cdist(x[:, best_features_idx[idx]], x[:, best_features_idx[idx]])
+            d_x = d_x.view(-1)[tril_index]
+            
+            error[idx, 0] = optim_func(d_x, d_y)
         #error = optim_func(x_stacked_indexed, x)
         
         # Update personal best
