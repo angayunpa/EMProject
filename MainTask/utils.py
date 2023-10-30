@@ -2,8 +2,8 @@ import torch
 
 def sammon_error(d_x, d_y, smooth=1e-8):
     '''
-    :param d_x:     Input data lower-triangular matrix of distances -> Tensor[#n classes/functions, #n classes/functions]
-    :param d_y:     Original data distance must be lower-triangular using torch.tril() -> Tensor[#n classes/functions, #n classes/functions]
+    :param d_x:     Original data distance must be lower-triangular using torch.tril() -> Tensor[#n classes/functions, #n classes/functions]
+    :param d_y:     Input data lower-triangular matrix of distances -> Tensor[#n classes/functions, #n classes/functions]
     :param device:  Device cpu or cuda
     :param smooth:  Smooth to avoid div by 0
     '''

@@ -60,7 +60,7 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
             d_x = torch.cdist(x[:, best_features_idx[idx]], x[:, best_features_idx[idx]])
             d_x = d_x.view(-1)[tril_index]
             
-            error[idx, 0] = optim_func(d_x, d_y)
+            error[idx, 0] = optim_func(d_y, d_x)
         #error = optim_func(x_stacked_indexed, x)
         
         # Update personal best
@@ -84,6 +84,6 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
 
         particles += velocities
         
-        error_log.append(gbest_val)
+        error_log.append(gbest_val.cpu().item())
     
-    return torch.topk(gbest_pos, n_features, dim=1)[1].squeeze(), error_log
+    return torch.topk(gbest_pos, n_features, dim=1)[1].squeeze().cpu(), error_log
