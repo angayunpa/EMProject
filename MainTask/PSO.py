@@ -16,11 +16,13 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
     :param c2:           Social weight
     :param device:       Device to compute (cpu or cuda)
     :param use_tqdm:     Flag to show progress bar
-    :return:             Index of best features
+    :return:             Index of best features and error during training
     '''
     
     assert torch.is_tensor(x), "x must be a tensor"
     assert len(x.shape) == 2, "x must be a 2dim tensor"
+    
+    error_log = []
     
     x = x.to(device)
     
@@ -81,5 +83,7 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
         velocities = inertia + cognitive + social
 
         particles += velocities
+        
+        error_log.append(gbest_val)
     
-    return torch.topk(gbest_pos, n_features, dim=1)[1].squeeze()
+    return torch.topk(gbest_pos, n_features, dim=1)[1].squeeze(), error_log
