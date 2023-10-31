@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from tqdm import tqdm
 import itertools
 
-from utils import sammon_error
+from .utils import sammon_error
 
 
 def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c_threshold=0.5, p_m_threshold=0.5, device='cpu', use_tqdm=True):
@@ -80,5 +80,8 @@ def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c
                 childs[1] = childs[1] + torch.rand(dim, device=device)
             
             new_population[2*idx:2*idx+2] = childs
-            
+        
+        population = new_population.clone()
+        
+        
     return torch.topk(best_in_population, n_features)[1].squeeze().cpu(), error_log
