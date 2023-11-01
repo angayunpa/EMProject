@@ -44,7 +44,7 @@ def kruskal_stress_error(d_x, d_y, smooth=1e-8, k_neighbors=3):
     d_x_geodesic = dijkstra(d_x_thresh)
     d_y_thresh = torch.where(d_y <= d_y.topk(k_neighbors, largest=False).values[:, -1:], d_y, 0.)
     d_y_geodesic = dijkstra(d_y_thresh)
-    return 1 / torch.sum(d_x_geodesic) * torch.sum(torch.square(d_x_geodesic - d_y_geodesic) / (d_x_geodesic + smooth))
+    return torch.sqrt(torch.sum(d_x_geodesic - d_y_geodesic) / torch.sum(d_x_geodesic + smooth))
 
 # https://discuss.pytorch.org/t/batched-index-select/9115/11
 
