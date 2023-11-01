@@ -1,20 +1,36 @@
 import torch
 import numpy as np
 
-def sammon_error(d_x, d_y, smooth=1e-8):
+def sammon_error(d_x, d_y, smooth=1e-8, batched_input=False, batch_size=None):
     '''
-    :param d_x:     Original data distance must be lower-triangular using torch.tril() -> Tensor[#n classes/functions, #n classes/functions]
-    :param d_y:     Input data lower-triangular matrix of distances -> Tensor[#n classes/functions, #n classes/functions]
+    :param d_x:     Original data -> Tensor[#n classes/functions, #n classes/functions]
+    :param d_y:     Input data  -> Tensor[#n classes/functions, #n classes/functions]
     :param device:  Device cpu or cuda
     :param smooth:  Smooth to avoid div by 0
     '''
     
-    #d_x = torch.tril(torch.cdist(x, x))
-    #d_y = torch.cdist(y, y)
-    if len(d_x.shape) == 3:
-        return 1 / torch.sum(d_x, dim=(-2,-1)) * torch.sum(torch.square(d_x - d_y) / (d_x + smooth), dim=(-2,-1))
-    
-    return 1 / torch.sum(d_x) * torch.sum(torch.square(d_x - d_y) / (d_x + smooth))
+    if not batched_input:
+        return 1 / torch.sum(d_x) * torch.sum(torch.square(d_x - d_y) / (d_x + smooth))
+    else:
+        
+        total_scale = 0
+        total_error = 0
+        for dim1_left_index in range(0, d_x.shape[0], batch_size):
+            for dim2_left_index in range(0, d_x.shape[0], batch_size):
+                dim1_right_index = min(d_x.shape[0], dim1_left_index + batch_size)
+                dim2_right_index = min(d_x.shape[0], dim2_left_index + batch_size)
+                
+                d_x_batch = torch.cdist(d_x[dim1_left_index:dim1_right_index, :],
+                                  d_x[dim2_left_index:dim2_right_index, :])
+                
+                d_y_batch = torch.cdist(d_y[dim1_left_index:dim1_right_index, :],
+                                  d_y[dim2_left_index:dim2_right_index, :])
+                
+                
+                total_scale += torch.sum(d_x_batch).long()
+                total_error += torch.sum(torch.square(d_x_batch - d_y_batch) / (d_x_batch + smooth))
+
+        return 1 / total_scale * total_error
 
 
 def kruskal_stress_error(d_x, d_y, smooth=1e-8, k_neighbors=3):
