@@ -44,7 +44,7 @@ def kruskal_stress_error(d_x, d_y, smooth=1e-8, k_neighbors=3):
     d_x_geodesic = dijkstra(d_x_thresh)
     d_y_thresh = torch.where(d_y <= d_y.topk(k_neighbors, largest=False).values[:, -1:], d_y, 0.)
     d_y_geodesic = dijkstra(d_y_thresh)
-    return torch.sqrt(torch.sum(d_x_geodesic - d_y_geodesic) / torch.sum(d_x_geodesic + smooth))
+    return torch.sqrt(torch.sum((d_x_geodesic - d_y_geodesic)**2) / torch.sum((d_x_geodesic + smooth)**2))
 
 # https://discuss.pytorch.org/t/batched-index-select/9115/11
 
@@ -88,7 +88,6 @@ class priorityQ_torch(object):
             self.q = torch.unsqueeze(self.q, dim=0)
             return
         idx = torch.searchsorted(self.q.T[1], x[1])
-        print(idx)
         self.q = torch.vstack([self.q[0:idx], x, self.q[idx:]]).contiguous()
 
     def top(self):
@@ -108,8 +107,6 @@ class priorityQ_torch(object):
         Returns:
             [torch.Tensor]: [highest priority element]
         """
-        if self.isEmpty():
-            print("Can Not Pop")
         self.q = self.q[1:]
 
     def isEmpty(self):
@@ -124,11 +121,11 @@ class priorityQ_torch(object):
         return self.q.shape[0] == 0
 
 
-def dijkstra(adj):
+def dijkstra(adj, const=1e+6):
     n = adj.shape[0]
     distance_matrix = torch.zeros([n, n])
     for i in range(n):
-        d = np.inf * torch.ones(n)
+        d = const * torch.ones(n)
         d[i] = 0
         q = priorityQ_torch(i)
         while not q.isEmpty():
