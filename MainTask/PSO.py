@@ -60,11 +60,13 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
         error = float('inf') * torch.ones(size=(n_particles, 1), dtype=torch.float, device=device)
         
         for idx in range(n_particles):
-            feat_tuple_sorted, _ = best_features_idx[idx].sort()
-            feat_tuple_sorted = tuple(feat_tuple_sorted.cpu().tolist())
+            feat_list = best_features_idx[idx].cpu().tolist()
+            bitmask = 0
+            for feat_idx in feat_list:
+                bitmask = bitmask | 2**feat_idx
             
-            if cache is not None and feat_tuple_sorted in cache:
-                error[idx, 0] = torch.tensor(cache[feat_tuple_sorted]).double().to(device)
+            if cache is not None and bitmask in cache:
+                error[idx, 0] = torch.tensor(cache[bitmask]).double().to(device)
                 continue
             
             y = x[:, best_features_idx[idx]]
@@ -74,7 +76,7 @@ def PSO(x, optim_func, n_features, max_iter=30, n_particles=30, w=0.6, c1=2, c2=
                 err_val = optim_func(x, y, batched_input=True, batch_size=batch_size)
             
             if cache is not None:
-                cache[feat_tuple_sorted] = err_val.cpu().item()
+                cache[bitmask] = err_val.cpu().item()
             error[idx, 0] = err_val
         
         # Update personal best
