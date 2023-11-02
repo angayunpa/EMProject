@@ -1,30 +1,38 @@
 import torch
 import numpy as np
 
-def sammon_error(d_x, d_y, smooth=1e-8, batched_input=False, batch_size=None):
+def sammon_error(x, y, smooth=1e-8, batched_input=False, batch_size=None, d_x=None):
     '''
-    :param d_x:     Original data -> Tensor[#n classes/functions, #n classes/functions]
-    :param d_y:     Input data  -> Tensor[#n classes/functions, #n classes/functions]
+    :param x:       Original data -> Tensor[#n classes/functions, #k features]
+    :param y:       Input data  -> Tensor[#n classes/functions, #l features]
     :param device:  Device cpu or cuda
     :param smooth:  Smooth to avoid div by 0
+    :param d_x:     If we have precalculated d_x with shape Tensor[#n classes/functions, #n classes/functions]
     '''
     
+    
+    
     if not batched_input:
+        
+        d_y = torch.cdist(y, y)
+        if d_x is None:
+            d_x = torch.cdist(x, x)
+        
         return 1 / torch.sum(d_x) * torch.sum(torch.square(d_x - d_y) / (d_x + smooth))
     else:
         
         total_scale = 0
         total_error = 0
-        for dim1_left_index in range(0, d_x.shape[0], batch_size):
-            for dim2_left_index in range(0, d_x.shape[0], batch_size):
-                dim1_right_index = min(d_x.shape[0], dim1_left_index + batch_size)
-                dim2_right_index = min(d_x.shape[0], dim2_left_index + batch_size)
+        for dim1_left_index in range(0, x.shape[0], batch_size):
+            for dim2_left_index in range(0, x.shape[0], batch_size):
+                dim1_right_index = min(x.shape[0], dim1_left_index + batch_size)
+                dim2_right_index = min(x.shape[0], dim2_left_index + batch_size)
                 
-                d_x_batch = torch.cdist(d_x[dim1_left_index:dim1_right_index, :],
-                                  d_x[dim2_left_index:dim2_right_index, :])
+                d_x_batch = torch.cdist(x[dim1_left_index:dim1_right_index, :],
+                                  x[dim2_left_index:dim2_right_index, :])
                 
-                d_y_batch = torch.cdist(d_y[dim1_left_index:dim1_right_index, :],
-                                  d_y[dim2_left_index:dim2_right_index, :])
+                d_y_batch = torch.cdist(y[dim1_left_index:dim1_right_index, :],
+                                  y[dim2_left_index:dim2_right_index, :])
                 
                 
                 total_scale += torch.sum(d_x_batch).long()

@@ -7,7 +7,7 @@ from tqdm import tqdm
 import itertools
 
 
-def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c_threshold=0.5, p_m_threshold=0.5, device='cpu', use_tqdm=True, batch_size=10000, batch_threshold=20000):
+def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c_threshold=0.5, p_m_threshold=0.5, device='cpu', use_tqdm=True, batch_size=10000, batch_threshold=20000, cache=None):
     
     
     assert torch.is_tensor(x), "x must be a tensor"
@@ -30,32 +30,33 @@ def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c
     use_batch = x.shape[0] >= batch_threshold
     
     if not use_batch:
-        tril_index = torch.tril_indices(x.shape[0], x.shape[0], offset=-1, device=device)
-        tril_index = tril_index[0] * x.shape[0] + tril_index[1]
-
-        d_y = torch.cdist(x, x)
-        d_y = d_y.view(-1)[tril_index]
-    
+        d_x = torch.cdist(x, x)
     
     iterator = range(max_iter)
     if use_tqdm:
         iterator = tqdm(iterator)
     
     for _ in iterator:
-        
         best_features_idx = torch.topk(population, n_features, dim=1)[1]
-        
         error = float('inf') * torch.ones(size=(population_size, 1), dtype=torch.float, device=device)
+        
         for idx in range(population_size):
+            feat_tuple_sorted, _ = best_features_idx[idx].sort()
+            feat_tuple_sorted = tuple(feat_tuple_sorted.cpu().tolist())
+            
+            if cache is not None and feat_tuple_sorted in cache:
+                error[idx, 0] = torch.tensor(cache[feat_tuple_sorted]).double().to(device)
+                continue
+            
+            y = x[:, best_features_idx[idx]]
             if not use_batch:
-                d_x = torch.cdist(x[:, best_features_idx[idx]], x[:, best_features_idx[idx]])
-                d_x = d_x.view(-1)[tril_index]
-
-                error[idx, 0] = optim_func(d_y, d_x)
-                
+                err_val = optim_func(x, y, d_x=d_x)                
             else:
-                
-                error[idx, 0] = optim_func(x, x[:, best_features_idx[idx]], batched_input=True, batch_size=batch_size)
+                err_val = optim_func(x, y, batched_input=True, batch_size=batch_size)
+            
+            if cache is not None:
+                cache[feat_tuple_sorted] = err_val.cpu().item()
+            error[idx, 0] = err_val
         
         min_error_idx = error.argmin()
         if error[min_error_idx] < best_error:
