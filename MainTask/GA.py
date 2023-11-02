@@ -46,6 +46,7 @@ def GA(x, optim_func, n_features, max_iter=30, population_size=30, n_best=6, p_c
             for feat_idx in feat_list:
                 bitmask = bitmask | 2**feat_idx
             
+            bitmask = str(bitmask)
             if cache is not None and bitmask in cache:
                 error[idx, 0] = torch.tensor(cache[bitmask]).double().to(device)
                 continue
