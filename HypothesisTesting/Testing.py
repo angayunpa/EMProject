@@ -13,58 +13,30 @@ print("Representative t-test")
 print(f"P-value for class: {res_class.pvalue}")
 print(f"P-value for method: {res_method.pvalue}")
 
-# # t-test for proof that train and test samples are equivalent
-# class_train = pd.read_csv('SammonErrors/Class_metrics_error_subset_train.csv')
-# method_train = pd.read_csv('SammonErrors/Method_metrics_error_subset_train.csv')
-
-# print("for class")
-# statistic, p_value = ttest_ind(class_train['Error'], class_val['Error'])
-# print(f"T-statistic: {statistic}")
-# print(f"P-value: {p_value}")
-# alpha = 0.05
-# if p_value < alpha:
-#     print("Reject the null hypothesis: Samples are not equivalent.")
-# else:
-#     print("Fail to reject the null hypothesis: Samples are equivalent.")
-
-# print("for method")
-# statistic, p_value = ttest_ind(method_train['Error'], method_val['Error'])
-# print(f"T-statistic: {statistic}")
-# print(f"P-value: {p_value}")
-# alpha = 0.05
-# if p_value < alpha:
-#     print("Reject the null hypothesis: Samples are not equivalent.")
-# else:
-#     print("Fail to reject the null hypothesis: Samples are equivalent.")
-
-
-# t-test for proof that Sammon errors for validation set are lower than for training set
-class_train = pd.read_csv('SammonErrors/Class_metrics_error_subset_train.csv')['Error']
-class_val = pd.read_csv('SammonErrors/Class_metrics_error_subset_val.csv')['Error']
+# t-test for proof that train and test samples are equivalent
+class_train = pd.read_csv('SammonErrors/Class_metrics_error_subset_train.csv')
+method_train = pd.read_csv('SammonErrors/Method_metrics_error_subset_train.csv')
 
 print("for class")
-statistic, p_value = ttest_ind(class_val, class_train, alternative='less')
+statistic, p_value = ttest_ind(class_train['Error'], class_val['Error'])
 print(f"T-statistic: {statistic}")
 print(f"P-value: {p_value}")
 alpha = 0.05
 if p_value < alpha:
-    print("Reject the null hypothesis")
+    print("Reject the null hypothesis: Samples are not equivalent.")
 else:
-    print("Fail to reject the null hypothesis")
-
-
-method_train = pd.read_csv('SammonErrors/Method_metrics_error_subset_train.csv')['Error']
-method_val = pd.read_csv('SammonErrors/Method_metrics_error_subset_train.csv')['Error']
+    print("Fail to reject the null hypothesis: Samples are equivalent.")
 
 print("for method")
-statistic, p_value = ttest_ind(method_val, method_train, alternative='less')
+statistic, p_value = ttest_ind(method_train['Error'], method_val['Error'])
 print(f"T-statistic: {statistic}")
 print(f"P-value: {p_value}")
 alpha = 0.05
 if p_value < alpha:
-    print("Reject the null hypothesis")
+    print("Reject the null hypothesis: Samples are not equivalent.")
 else:
-    print("Fail to reject the null hypothesis")
+    print("Fail to reject the null hypothesis: Samples are equivalent.")
+
 
 # Mann-Whitney test
 Mann_Whitney_p_value = pd.DataFrame({
